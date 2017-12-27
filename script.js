@@ -117,6 +117,7 @@ const rules = {
 	spread: c => c >= 1,
 	'pretty-spread': c => (c >= 1 && c < 4),
 	one: c => c == 1,
+	two: c => c == 2,
 	branch: (c, a, b) => count(b) == 1
 };
 

@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', e => {
 	const weights = {
 		spread: 0,
 		one: 4,
+		two: 2,
 		branch: 25,
 		'pretty-spread': 2
 	};
