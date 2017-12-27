@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', e => {
 			step = document.getElementById(rule + '-once');
 		slider.value = weights[rule];
 		slider.addEventListener('change', e => {
-			weights[rule] = slider.value;
+			weights[rule] = parseInt(slider.value, 10);
 			e.preventDefault();
 		});
 		step.addEventListener('click', e => {
@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', e => {
 
 	document.getElementById('iterate-many')
 		.addEventListener('click', e => {
-			console.log('Animating...');
+			console.log('Animating...', weights);
 			e.preventDefault();
 			init();
 			let i = document.getElementById('iterations').value;
@@ -48,7 +48,11 @@ document.addEventListener('DOMContentLoaded', e => {
 
 			function frame() {
 				console.log('Animating a frame');
-				iterateRandomly(weights);
+				try {
+					iterateRandomly(weights);
+				} catch (e) {
+					console.error(e);
+				}
 				if (--i)
 					setTimeout(frame, delay);
 			}
