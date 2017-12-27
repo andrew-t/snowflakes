@@ -1,27 +1,12 @@
-/*
-
-hexagon directions:
-
- y           x
- .         .
- . _/ \_/.\_
- .  \_/.\_/ 
- . _/.\_/ \_
- . .\_/ \_/ 
- 0 _/ \_/ \_
-
-     ____
-    /    \
-   /      \
-   \      / |
-    \____/  | c
-   __
-   a   b
-
-*/
-
 class Snowflake {
 	constructor(options = {}) {
+		/*	  ____
+			 /    \
+			/      \
+			\      / |
+			 \____/  | c
+			__
+			a   b   */
 		this.b = options.size || 9;
 		this.a = this.b / 2;
 		this.c = this.a * Math.sqrt(3);
@@ -52,18 +37,12 @@ class Snowflake {
 		this.history.push(newFrame);
 		return newFrame;
 	}
+
 	undo() {
 		if (this.frame > 0) {
 			--this.frame;
 			this.draw();
 		}
-	}
-
-	onInit(cb) {
-		if (this.initialised)
-			cb(this);
-		else
-			this.hooks.init.push(cb);
 	}
 
 	draw() {
@@ -77,7 +56,14 @@ class Snowflake {
 		}
 	}
 
-	hex(x, y) {
+	hex(x, y) { /*
+		y           x
+		.         .
+		. _/ \_/.\_
+		.  \_/.\_/ 
+		. _/.\_/ \_
+		. .\_/ \_/ 
+		0 _/ \_/ \_     */
 		const o = {
 			x: x * (this.a + this.b) + this.canvas.width / 2,
 			y: y * this.c * 2 +
@@ -180,7 +166,8 @@ class Snowflake {
 	static init(canvas) {
 		console.log(`Initialising canvas "${canvas.id}"`);
 		canvas.snowflake = new Snowflake({
-			canvas
+			canvas,
+			size: parseFloat(canvas.getAttribute('data-size'))
 		});
 	}
 }
@@ -202,7 +189,19 @@ Snowflake.prototype.rules = {
 	'pretty-spread': c => (c >= 1 && c < 4),
 	one: c => c == 1,
 	two: c => c == 2,
-	branch: (c, a, b) => Snowflake.count(b) == 1
+	branch: (c, a, b) => Snowflake.count(b) == 1,
+	'safe-spread': (c, a) => {
+		if (c < 1 || c > 3)
+			return false;
+		let on = a[0],
+			changes = 0;
+		for (let curr of a)
+			if (a != on) {
+				on = a;
+				++changes;
+			}
+		return changes < 2;
+	}		
 };
 
 Snowflake._initCbs = [];

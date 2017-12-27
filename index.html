@@ -9,7 +9,8 @@
 <body>
 	<canvas width="1000" height="1000"
 		id="canvas"
-		class="snowflake-canvas"></canvas>
+		class="snowflake-canvas"
+		data-size="8"></canvas>
 	<ul>
 		<li>
 			<label for="spread">Spread</label>
@@ -20,6 +21,11 @@
 			<label for="pretty-spread">Pretty Spread</label>
 			<input type="range" id="pretty-spread" min="0" max="100">
 			<button id="pretty-spread-once">Step</button>
+		</li>
+		<li>
+			<label for="safe-spread">Safe Spread</label>
+			<input type="range" id="safe-spread" min="0" max="100">
+			<button id="safe-spread-once">Step</button>
 		</li>
 		<li>
 			<label for="one">One</label>

@@ -5,10 +5,11 @@ Snowflake.onInit(() => {
 
 	const weights = {
 		spread: 0,
-		one: 4,
-		two: 2,
-		branch: 25,
-		'pretty-spread': 2
+		one: 2,
+		two: 1,
+		branch: 45,
+		'pretty-spread': 1,
+		'safe-spread': 2
 	};
 
 	Object.keys(snowflake.rules).forEach(rule => {
