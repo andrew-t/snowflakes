@@ -20,7 +20,7 @@ Snowflake.onInit(() => {
 			e.preventDefault();
 		});
 		step.addEventListener('click', e => {
-			iterate(rules[rule]);
+			snowflake.iterate(rules[rule]);
 			e.preventDefault();
 		});
 	});
@@ -29,6 +29,13 @@ Snowflake.onInit(() => {
 		.addEventListener('click', e => {
 			console.log('Resetting');
 			snowflake.reset();
+			e.preventDefault();
+		});
+
+	document.getElementById('undo')
+		.addEventListener('click', e => {
+			console.log('Undoing');
+			snowflake.undo();
 			e.preventDefault();
 		});
 

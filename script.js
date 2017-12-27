@@ -17,6 +17,7 @@ hexagon directions:
     \____/  | c
    __
    a   b
+
 */
 
 class Snowflake {
@@ -37,7 +38,25 @@ class Snowflake {
 	}
 
 	reset() {
-		this.cells = { '0,0': true };
+		this.history = [{ '0,0': true }];
+		this.frame = 0;
+	}
+
+	get cells() {
+		return this.history[this.frame];
+	}
+
+	startNewFrame() {
+		const newFrame = Snowflake.clone(this.cells);
+		this.history.length = ++this.frame;
+		this.history.push(newFrame);
+		return newFrame;
+	}
+	undo() {
+		if (this.frame > 0) {
+			--this.frame;
+			this.draw();
+		}
 	}
 
 	onInit(cb) {
@@ -80,7 +99,8 @@ class Snowflake {
 	iterate(rule) {
 		// Loop through all spaces touching a current cell:
 		const done = {},
-			oldCells = Snowflake.clone(this.cells);
+			oldCells = this.cells;
+		this.startNewFrame();
 		for (let cell in this.cells)
 			for (let neighbour of Snowflake.neighbours(cell))
 				if (!done[neighbour]) {
@@ -158,7 +178,7 @@ class Snowflake {
 	}
 
 	static init(canvas) {
-		console.log('Initialising canvas ' + canvas.id);
+		console.log(`Initialising canvas "${canvas.id}"`);
 		canvas.snowflake = new Snowflake({
 			canvas
 		});
