@@ -18,155 +18,185 @@ hexagon directions:
    __
    a   b
 */
-const a = 4, b = 9, c = 7;
 
-let cells;
-let draw = () => {};
-
-document.addEventListener('DOMContentLoaded', e => {
-	const canvas = document.getElementById('canvas'),
-		ctx = canvas.getContext('2d');
-	ctx.fillStyle = '#6cf';
-	ctx.strokeStyle = '#fff';
-	ctx.lineWidth = 1;
-
-	draw = () => {
-		ctx.clearRect(0, 0, canvas.width, canvas.height);
-		for (let i in cells) {
-			const c = i2coords(i);
-			hex(c.x, c.y);
+class Snowflake {
+	constructor(options = {}) {
+		this.b = options.size || 9;
+		this.a = this.b / 2;
+		this.c = this.a * Math.sqrt(3);
+		if (this.canvas = options.canvas) {
+			this.ctx = this.canvas.getContext('2d');
+			this.ctx.fillStyle = options.fillStyle || '#6cf';
+			if (options.strokeStyle) {
+				this._stroke = true;
+				this.ctx.strokeStyle = options.strokeStyle;
+				this.ctx.lineWidth = options.lineWidth || 1;
+			}
 		}
-	};
+		this.reset();
+	}
 
-	init();
-	go(35, {
-		spread: 2,
-		one: 3,
-		branch: 30
-	});
+	reset() {
+		this.cells = { '0,0': true };
+	}
 
-	function hex(x, y) {
+	onInit(cb) {
+		if (this.initialised)
+			cb(this);
+		else
+			this.hooks.init.push(cb);
+	}
+
+	draw() {
+		if (this.ctx) {
+			this.ctx.clearRect(0, 0,
+				this.canvas.width, this.canvas.height);
+			for (let i in this.cells) {
+				const c = Snowflake.i2coords(i);
+				this.hex(c.x, c.y);
+			}
+		}
+	}
+
+	hex(x, y) {
 		const o = {
-			x: x * (a + b) + 500,
-			y: y * c * 2 + x * c + 500
+			x: x * (this.a + this.b) + this.canvas.width / 2,
+			y: y * this.c * 2 +
+				x * this.c + this.canvas.height / 2
 		};
-		ctx.beginPath();
-		ctx.moveTo(o.x, o.y);
-		ctx.lineTo(o.x + b, o.y);
-		ctx.lineTo(o.x + b + a, o.y - c);
-		ctx.lineTo(o.x + b, o.y - 2 * c);
-		ctx.lineTo(o.x, o.y - 2 * c);
-		ctx.lineTo(o.x - a, o.y - c);
-		ctx.closePath();
-		ctx.fill();
-		ctx.stroke();
+		this.ctx.beginPath();
+		this.ctx.moveTo(o.x, o.y);
+		this.ctx.lineTo(o.x + this.b, o.y);
+		this.ctx.lineTo(o.x + this.b + this.a, o.y - this.c);
+		this.ctx.lineTo(o.x + this.b, o.y - 2 * this.c);
+		this.ctx.lineTo(o.x, o.y - 2 * this.c);
+		this.ctx.lineTo(o.x - this.a, o.y - this.c);
+		this.ctx.closePath();
+		this.ctx.fill();
+		if (this._stroke)
+			this.ctx.stroke();
+	}
+
+	iterate(rule) {
+		// Loop through all spaces touching a current cell:
+		const done = {},
+			oldCells = Snowflake.clone(this.cells);
+		for (let cell in this.cells)
+			for (let neighbour of Snowflake.neighbours(cell))
+				if (!done[neighbour]) {
+					done[neighbour] = true;
+					// Count the alive neighbours of each space.
+					let aliveCount = 0,
+						alive = [[], []];
+					for (let d of Snowflake.directions) {
+						const a = oldCells[Snowflake.offset(neighbour, d)],
+							b = oldCells[Snowflake.offset(neighbour, d, 2)];
+						alive[0].push(!!a);
+						alive[1].push(!!(a && b));
+						if (a)
+							++aliveCount;
+					}
+					// Add the cell if it matches the rule
+					if (rule(aliveCount, alive[0], alive[1]))
+						this.cells[neighbour] = true;
+				}
+		this.draw();
+	}
+
+	iterateRandomly(weights) {
+		const t = Snowflake.total(weights);
+		let r = Math.random() * t;
+		for (const rule in weights) {
+			r -= weights[rule];
+			if (r < 0) {
+				console.log('Chose rule ' + rule);
+				this.iterate(this.rules[rule]);
+				break;
+			}
+		}
+	}
+
+	static count(arr) {
+		let c = 0;
+		for (let x of arr)
+			if (x)
+				++c;
+		return c;
+	}
+
+	static total(arr) {
+		let c = 0;
+		for (let x in arr)
+			c += arr[x];
+		return c;
+	}
+
+	static offset(start, direction, distance = 1) {
+		const c = Snowflake.i2coords(start);
+		return Snowflake.coords2i({
+			x: c.x + direction.x * distance,
+			y: c.y + direction.y * distance
+		});
+	}
+
+	static* neighbours(i, n = 1) {
+		for (let d of Snowflake.directions)
+			yield Snowflake.offset(i, d, n);
+	}
+
+	static i2coords(i) {
+		const p = i.split(',').map(x => parseInt(x, 10));
+		return { x: p[0], y: p[1] };
+	}
+
+	static coords2i(coords) {
+		return `${coords.x},${coords.y}`;
+	}
+
+	static clone(x) {
+		return JSON.parse(JSON.stringify(x));
+	}
+
+	static init(canvas) {
+		console.log('Initialising canvas ' + canvas.id);
+		canvas.snowflake = new Snowflake({
+			canvas
+		});
+	}
+}
+
+// No idea if there's a syntax for a static getter generator?
+Object.defineProperty(Snowflake, 'directions', {
+	get: function*() {
+		yield { x: 0, y: 1 };
+		yield { x: 1, y: 0 };
+		yield { x: 1, y: -1 };
+		yield { x: 0, y: -1 };
+		yield { x: -1, y: 0 };
+		yield { x: -1, y: 1 };
 	}
 });
 
-function init() {
-	cells = { '0,0': true };
-	draw();
-}
-
-function iterate(rule) {
-	// Loop through all spaces touching a current cell:
-	const done = {},
-		oldCells = clone(cells);
-	for (let cell in cells)
-		for (let neighbour of neighbours(cell))
-			if (!done[neighbour]) {
-				done[neighbour] = true;
-				// Count the alive neighbours of each space.
-				let aliveCount = 0,
-					alive = [[], []];
-				for (let d of directions()) {
-					const a = oldCells[offset(neighbour, d)],
-						b = oldCells[offset(neighbour, d, 2)];
-					alive[0].push(!!a);
-					alive[1].push(!!(a && b));
-					if (a)
-						++aliveCount;
-				}
-				// Add the cell if it matches the rule
-				if (rule(aliveCount, alive[0], alive[1]))
-					cells[neighbour] = true;
-			}
-	draw();
-}
-
-// eg, go(100, { spread: 20, branch: 1})
-function go(n, weights) {
-	for (let i = 0; i < n; ++i)
-		iterateRandomly(weights);
-}
-
-function iterateRandomly(weights) {
-	const t = total(weights);
-	let r = Math.random() * t;
-	for (const rule in weights) {
-		r -= weights[rule];
-		if (r < 0) {
-			console.log('Chose rule ' + rule);
-			iterate(rules[rule]);
-			break;
-		}
-	}
-}
-
-const rules = {
+Snowflake.prototype.rules = {
 	spread: c => c >= 1,
 	'pretty-spread': c => (c >= 1 && c < 4),
 	one: c => c == 1,
 	two: c => c == 2,
-	branch: (c, a, b) => count(b) == 1
+	branch: (c, a, b) => Snowflake.count(b) == 1
 };
 
-function count(arr) {
-	let c = 0;
-	for (let x of arr)
-		if (x)
-			++c;
-	return c;
-}
-
-function total(arr) {
-	let c = 0;
-	for (let x in arr)
-		c += arr[x];
-	return c;
-}
-
-function* directions(n = 1) {
-	yield { x: 0, y: n };
-	yield { x: n, y: 0 };
-	yield { x: n, y: -n };
-	yield { x: 0, y: -n };
-	yield { x: -n, y: 0 };
-	yield { x: -n, y: n };
-}
-
-function offset(start, direction, distance = 1) {
-	const c = i2coords(start);
-	return coords2i({
-		x: c.x + direction.x * distance,
-		y: c.y + direction.y * distance
-	});
-}
-
-function* neighbours(i, n = 1) {
-	for (let d of directions())
-		yield offset(i, d, n);
-}
-
-function i2coords(i) {
-	const p = i.split(',').map(x => parseInt(x, 10));
-	return { x: p[0], y: p[1] };
-}
-
-function coords2i(coords) {
-	return `${coords.x},${coords.y}`;
-}
-
-function clone(x) {
-	return JSON.parse(JSON.stringify(x));
-}
+Snowflake._initCbs = [];
+Snowflake.onInit = cb => {
+	if (Snowflake._initCbs)
+		Snowflake._initCbs.push(cb);
+	else
+		cb();
+};
+document.addEventListener('DOMContentLoaded', e => {
+	const canvases = document.getElementsByClassName('snowflake-canvas');
+	console.log(`Initialising ${canvases.length} canvases`);
+	for (let i = 0; i < canvases.length; ++i)
+		Snowflake.init(canvases[i]);
+	Snowflake._initCbs.forEach(cb => cb());
+	delete Snowflake._initCbs;
+});

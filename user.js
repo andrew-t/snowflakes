@@ -1,4 +1,7 @@
-document.addEventListener('DOMContentLoaded', e => {
+Snowflake.onInit(() => {
+
+	const canvas = document.getElementById('canvas'),
+		snowflake = canvas.snowflake;
 
 	const weights = {
 		spread: 0,
@@ -8,7 +11,7 @@ document.addEventListener('DOMContentLoaded', e => {
 		'pretty-spread': 2
 	};
 
-	Object.keys(rules).forEach(rule => {
+	Object.keys(snowflake.rules).forEach(rule => {
 		const slider = document.getElementById(rule),
 			step = document.getElementById(rule + '-once');
 		slider.value = weights[rule];
@@ -25,14 +28,14 @@ document.addEventListener('DOMContentLoaded', e => {
 	document.getElementById('reset')
 		.addEventListener('click', e => {
 			console.log('Resetting');
-			init();
+			snowflake.reset();
 			e.preventDefault();
 		});
 
 	document.getElementById('iterate-once')
 		.addEventListener('click', e => {
 			console.log('Iterating randomly');
-			iterateRandomly(weights);
+			snowflake.iterateRandomly(weights);
 			e.preventDefault();
 		});
 
@@ -40,17 +43,17 @@ document.addEventListener('DOMContentLoaded', e => {
 		.addEventListener('click', e => {
 			console.log('Animating...', weights);
 			e.preventDefault();
-			init();
+			snowflake.reset();
 			let i = document.getElementById('iterations').value;
 			const delay = (100 - document.getElementById('speed').value) * 10;
 			if (document.getElementById('spread-first').checked)
-				iterate(rules.spread);
+				snowflake.iterate(snowflake.rules.spread);
 			frame();
 
 			function frame() {
 				console.log('Animating a frame');
 				try {
-					iterateRandomly(weights);
+					snowflake.iterateRandomly(weights);
 				} catch (e) {
 					console.error(e);
 				}
