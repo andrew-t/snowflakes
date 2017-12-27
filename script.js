@@ -115,6 +115,7 @@ function iterateRandomly(weights) {
 
 const rules = {
 	spread: c => c >= 1,
+	'pretty-spread': c => (c >= 1 && c < 4),
 	one: c => c == 1,
 	branch: (c, a, b) => count(b) == 1
 };

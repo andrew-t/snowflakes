@@ -1,6 +1,6 @@
 label {
 	display: inline-block;
-	width: 5em;
+	width: 10em;
 }
 input[type=range] {
 	background: #def;

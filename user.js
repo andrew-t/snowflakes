@@ -1,9 +1,10 @@
 document.addEventListener('DOMContentLoaded', e => {
 
 	const weights = {
-		spread: 2,
+		spread: 0,
 		one: 4,
-		branch: 25
+		branch: 25,
+		'pretty-spread': 2
 	};
 
 	Object.keys(rules).forEach(rule => {
