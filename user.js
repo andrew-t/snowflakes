@@ -9,7 +9,9 @@ Snowflake.onInit(() => {
 		two: 1,
 		branch: 45,
 		'pretty-spread': 1,
-		'safe-spread': 2
+		'safe-spread': 2,
+		fill: 2,
+		facet: 2
 	};
 
 	Object.keys(snowflake.rules).forEach(rule => {
@@ -67,6 +69,8 @@ Snowflake.onInit(() => {
 				}
 				if (--i)
 					setTimeout(frame, delay);
+				else
+					console.log('Done.');
 			}
 		});
 

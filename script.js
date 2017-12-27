@@ -186,22 +186,25 @@ Object.defineProperty(Snowflake, 'directions', {
 
 Snowflake.prototype.rules = {
 	spread: c => c >= 1,
-	'pretty-spread': c => (c >= 1 && c < 4),
+	'pretty-spread': c => (c >= 1) && (c < 4),
 	one: c => c == 1,
 	two: c => c == 2,
 	branch: (c, a, b) => Snowflake.count(b) == 1,
-	'safe-spread': (c, a) => {
-		if (c < 1 || c > 3)
-			return false;
-		let on = a[0],
-			changes = 0;
-		for (let curr of a)
-			if (a != on) {
-				on = a;
-				++changes;
-			}
-		return changes < 2;
-	}		
+	'safe-spread': (c, a) => (c == 2) &&
+		(Snowflake.changes(a) <= 2),
+	fill: c => c == 6,
+	facet: (c, a) => (c == 3) &&
+		(Snowflake.changes(a) <= 2)
+};
+Snowflake.changes = arr => {
+	let on = arr[0],
+		changes = 0;
+	for (let curr of arr)
+		if (arr != on) {
+			on = arr;
+			++changes;
+		}
+	return changes;
 };
 
 Snowflake._initCbs = [];
