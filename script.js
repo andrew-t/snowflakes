@@ -39,6 +39,11 @@ document.addEventListener('DOMContentLoaded', e => {
 	};
 
 	init();
+	go(35, {
+		spread: 2,
+		one: 3,
+		branch: 30
+	});
 
 	function hex(x, y) {
 		const o = {
@@ -73,23 +78,57 @@ function iterate(rule) {
 				done[neighbour] = true;
 				// Count the alive neighbours of each space.
 				let aliveCount = 0,
-					alive = [];
-				for (let i of neighbours(neighbour))
-					if (oldCells[i]) {
-						alive.push(!!cells[i]);
+					alive = [[], []];
+				for (let d of directions()) {
+					const a = oldCells[offset(neighbour, d)],
+						b = oldCells[offset(neighbour, d, 2)];
+					alive[0].push(!!a);
+					alive[1].push(!!(a && b));
+					if (a)
 						++aliveCount;
-					}
+				}
 				// Add the cell if it matches the rule
-				if (rule(aliveCount, alive))
+				if (rule(aliveCount, alive[0], alive[1]))
 					cells[neighbour] = true;
 			}
 	draw();
 }
 
+// eg, go(100, { spread: 20, branch: 1})
+function go(n, weights) {
+	let t = total(weights);
+	for (let i = 0; i < n; ++i) {
+		let r = Math.random() * t;
+		for (let rule in weights) {
+			r -= weights[rule];
+			if (r < 0) {
+				iterate(rules[rule]);
+				break;
+			}
+		}
+	}
+}
+
 const rules = {
 	spread: c => c >= 1,
-	branch: c => c == 1
+	one: c => c == 1,
+	branch: (c, a, b) => count(b) == 1
 };
+
+function count(arr) {
+	let c = 0;
+	for (let x of arr)
+		if (x)
+			++c;
+	return c;
+}
+
+function total(arr) {
+	let c = 0;
+	for (let x in arr)
+		c += arr[x];
+	return c;
+}
 
 function* directions(n = 1) {
 	yield { x: 0, y: n };
@@ -100,13 +139,17 @@ function* directions(n = 1) {
 	yield { x: -n, y: n };
 }
 
+function offset(start, direction, distance = 1) {
+	const c = i2coords(start);
+	return coords2i({
+		x: c.x + direction.x * distance,
+		y: c.y + direction.y * distance
+	});
+}
+
 function* neighbours(i, n = 1) {
-	const c = i2coords(i);
 	for (let d of directions())
-		yield coords2i({
-			x: c.x + d.x,
-			y: c.y + d.y
-		});
+		yield offset(i, d, n);
 }
 
 function i2coords(i) {
