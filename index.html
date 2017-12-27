@@ -3,9 +3,38 @@
 <head>
 	<title>andrewt.net / snowfake</title>
 	<script type="text/javascript" src="script.js"></script>
+	<script type="text/javascript" src="user.js"></script>
 	<link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
 	<canvas width="1000" height="1000" id="canvas"></canvas>
+	<ul>
+		<li>
+			<label for="spread">Spread</label>
+			<input type="range" id="spread" min="0" max="100">
+			<button id="spread-once">Step</button>
+		</li>
+		<li>
+			<label for="one">One</label>
+			<input type="range" id="one" min="0" max="100">
+			<button id="one-once">Step</button>
+		</li>
+		<li>
+			<label for="branch">Branch</label>
+			<input type="range" id="branch" min="0" max="100">
+			<button id="branch-once">Step</button>
+		</li>
+	</ul>
+
+	<button id="iterate-once">Step</button>
+	<button id="reset">Reset</button>
+
+	<label for="iterations">Iterations</label>
+	<input type="number" min="0" max="1000" value="30" id="iterations">
+	<label for="speed">Speed</label>
+	<input type="range" id="speed" value="80" min="0" max="100">
+	<label for="spread-first">Spread First</label>
+	<input type="checkbox" checked id="spread-first">
+	<button id="iterate-many">Build</button>
 </body>
 </html>

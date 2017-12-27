@@ -96,15 +96,19 @@ function iterate(rule) {
 
 // eg, go(100, { spread: 20, branch: 1})
 function go(n, weights) {
-	let t = total(weights);
-	for (let i = 0; i < n; ++i) {
-		let r = Math.random() * t;
-		for (let rule in weights) {
-			r -= weights[rule];
-			if (r < 0) {
-				iterate(rules[rule]);
-				break;
-			}
+	for (let i = 0; i < n; ++i)
+		iterateRandomly(weights);
+}
+
+function iterateRandomly(weights) {
+	const t = total(weights);
+	let r = Math.random() * t;
+	for (const rule in weights) {
+		r -= weights[rule];
+		if (r < 0) {
+			console.log('Chose rule ' + rule);
+			iterate(rules[rule]);
+			break;
 		}
 	}
 }
