@@ -82,31 +82,41 @@ class Snowflake {
 			this.ctx.stroke();
 	}
 
-	iterate(rule) {
+	iterate(rule, meltRule) {
+		let anyChanges = false;
 		// Loop through all spaces touching a current cell:
-		const done = {},
-			oldCells = this.cells;
+		const oldCells = this.cells;
 		this.startNewFrame();
-		for (let cell in this.cells)
-			for (let neighbour of Snowflake.neighbours(cell))
-				if (!done[neighbour]) {
-					done[neighbour] = true;
-					// Count the alive neighbours of each space.
-					let aliveCount = 0,
-						alive = [[], []];
-					for (let d of Snowflake.directions) {
-						const a = oldCells[Snowflake.offset(neighbour, d)],
-							b = oldCells[Snowflake.offset(neighbour, d, 2)];
-						alive[0].push(!!a);
-						alive[1].push(!!(a && b));
-						if (a)
-							++aliveCount;
-					}
-					// Add the cell if it matches the rule
-					if (rule(aliveCount, alive[0], alive[1]))
-						this.cells[neighbour] = true;
-				}
+		for (let cell in oldCells) {
+			if (rule)
+				for (let neighbour of Snowflake.neighbours(cell))
+					if (!this.cells[neighbour])
+						if (Snowflake.applyRule(rule, oldCells, neighbour)) {
+							this.cells[neighbour] = true;
+							anyChanges = true;
+						}
+			if (meltRule)
+				if (Snowflake.applyRule(meltRule, oldCells, cell))
+					delete this.cells[cell];
+		}
 		this.draw();
+		return anyChanges;
+	}
+
+	static applyRule(rule, oldCells, cell) {
+		// Count the alive neighbours of each space.
+		let aliveCount = 0,
+			alive = [[], []];
+		for (let d of Snowflake.directions) {
+			const a = oldCells[Snowflake.offset(cell, d)],
+				b = oldCells[Snowflake.offset(cell, d, 2)];
+			alive[0].push(!!a);
+			alive[1].push(!!(a && b));
+			if (a)
+				++aliveCount;
+		}
+		// Add the cell if it matches the rule
+		return rule(aliveCount, alive[0], alive[1]);
 	}
 
 	iterateRandomly(weights) {
@@ -189,13 +199,16 @@ Snowflake.prototype.rules = {
 	'pretty-spread': c => (c >= 1) && (c < 4),
 	one: c => c == 1,
 	two: c => c == 2,
-	branch: (c, a, b) => Snowflake.count(b) == 1,
-	'safe-spread': (c, a) => (c == 2) &&
-		(Snowflake.changes(a) <= 2),
+	branch: (c, a, b) => (Snowflake.count(b) == 1) ||
+		Snowflake.unbroken(a, n => n == 3),
+	'safe-spread': (c, a) => (c <= 3) &&
+		Snowflake.unbroken(a, n => n <= 2),
 	fill: c => c == 6,
 	facet: (c, a) => (c == 3) &&
-		(Snowflake.changes(a) <= 2)
+		Snowflake.unbroken(a, n => n <= 2)
 };
+Snowflake.unbroken = (arr, cb) =>
+	cb(Snowflake.changes(arr));
 Snowflake.changes = arr => {
 	let on = arr[0],
 		changes = 0;

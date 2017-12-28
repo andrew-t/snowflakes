@@ -23,7 +23,7 @@ Snowflake.onInit(() => {
 			e.preventDefault();
 		});
 		step.addEventListener('click', e => {
-			snowflake.iterate(rules[rule]);
+			snowflake.iterate(snowflake.rules[rule]);
 			e.preventDefault();
 		});
 	});
